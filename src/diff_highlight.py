@@ -61,7 +61,18 @@ class colorui(color.colorui):
         if self.hunk is None:  # not initialized yet
             return
 
-        hunk = [(ret[0].decode('utf-8'), ret[1]) for ret in self.hunk]
+        encodings = self.configlist('diff-highlight', 'encodings') or ['utf-8']
+        hunk = []
+        for ret in self.hunk:
+            for enc in encodings:
+                try:
+                    l = ret[0].decode(enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                raise
+            hunk.append((l, ret[1]))
         new = [c[0] for c in hunk if c[1]['label'] == INSERT_NORM]
         old = [c[0] for c in hunk if c[1]['label'] == DELETE_NORM]
 
