@@ -32,6 +32,9 @@ class colorui(ui.ui):
         super(colorui, self).__init__(src)
         self.hunk = []
 
+    def canbatchlabeledwrites(self):
+        return False
+
     def write(self, *args, **opts):
         label = opts.get('label')
         if label in (INSERT_NORM, DELETE_NORM):
