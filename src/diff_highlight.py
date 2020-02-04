@@ -18,10 +18,10 @@ from mercurial import extensions, ui, util
 from mercurial.i18n import _
 from highlights.pprint import INSERTED, DELETED, pprint_hunk
 
-INSERT_NORM = 'diff.inserted'
-INSERT_EMPH = 'diff.inserted_highlight'
-DELETE_NORM = 'diff.deleted'
-DELETE_EMPH = 'diff.deleted_highlight'
+INSERT_NORM = b'diff.inserted'
+INSERT_EMPH = b'diff.inserted_highlight'
+DELETE_NORM = b'diff.deleted'
+DELETE_EMPH = b'diff.deleted_highlight'
 
 
 class colorui(ui.ui):
@@ -40,16 +40,16 @@ class colorui(ui.ui):
         if label in (INSERT_NORM, DELETE_NORM):
             if self.tab is not None:
                 change = self.hunk.pop()
-                self.hunk.append((change[0] + self.tab + "".join(args), change[1]))
+                self.hunk.append((change[0] + self.tab + b''.join(args), change[1]))
                 self.tab = None
             else:
-                self.hunk.append(("".join(args), opts))
-        elif label == 'diff.trailingwhitespace':  # merge to hunk
+                self.hunk.append((b''.join(args), opts))
+        elif label == b'diff.trailingwhitespace':  # merge to hunk
             change = self.hunk.pop()
-            self.hunk.append((change[0] + "".join(args), change[1]))
-        elif label == 'diff.tab':
-            self.tab = "".join(args)
-        elif label == '' and args == ("\n",) and self.hunk:
+            self.hunk.append((change[0] + b''.join(args), change[1]))
+        elif label == b'diff.tab':
+            self.tab = b''.join(args)
+        elif label == b'' and args == (b'\n',) and self.hunk:
             self.hunk.append((args[0], opts))
         else:
             self.flush_hunk()
@@ -110,7 +110,7 @@ def uisetup(ui):
         colorui.__bases__ = (ui.__class__,)
         ui.__class__ = colorui
 
-    ver = tuple(int(s) if s.isdigit() else s for s in util.version().split('.'))
+    ver = tuple(int(s) if s.isdigit() else s for s in util.version().split(b'.'))
 
     def colorconfig(orig, *args, **kwargs):
         ret = orig(*args, **kwargs)
@@ -123,10 +123,10 @@ def uisetup(ui):
             styles = color._defaultstyles
 
         if INSERT_EMPH not in styles:
-            styles[INSERT_EMPH] = styles[INSERT_NORM] + ' inverse'
+            styles[INSERT_EMPH] = styles[INSERT_NORM] + b' inverse'
 
         if DELETE_EMPH not in styles:
-            styles[DELETE_EMPH] = styles[DELETE_NORM] + ' inverse'
+            styles[DELETE_EMPH] = styles[DELETE_NORM] + b' inverse'
 
         return ret
 

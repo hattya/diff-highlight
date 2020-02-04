@@ -6,20 +6,17 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-if sys.version_info < (3, 0):
-    try:
-        from hgext import color
+try:
+    from hgext import color
 
-        colorext = color
-    except ImportError:
-        colorext = None
-    try:
-        from mercurial import color
-    except ImportError:
-        pass
-    from diff_highlight import colorui
+    colorext = color
+except ImportError:
+    colorext = None
+try:
+    from mercurial import color
     from mercurial.util import version as mercurial_version
-else:
+    from diff_highlight import colorui
+except ImportError:
     color = None
 
 
@@ -34,74 +31,74 @@ class TestDiffHighlight(unittest.TestCase):
             pass
 
         ui = colorui()
-        if mercurial_version() >= "4.2.0":
-            ui.setconfig('ui', 'color', 'always')
+        if mercurial_version() >= b"4.2.0":
+            ui.setconfig(b'ui', b'color', b'always')
             color.setup(ui)
             styles = ui._styles
         else:
             colorui.__bases__ = (colorext.colorui,)
             styles = color._styles
-        styles['diff.inserted_highlight'] = 'green inverse'
-        styles['diff.deleted_highlight'] = 'red inverse'
+        styles[b'diff.inserted_highlight'] = b'green inverse'
+        styles[b'diff.deleted_highlight'] = b'red inverse'
 
-        if mercurial_version() >= "3.7.0":
+        if mercurial_version() >= b"3.7.0":
             ui.pushbuffer(labeled=True)
         else:
             ui.pushbuffer()
 
-        ui.write("@@ -10,4 +10,6 @@")
-        ui.write("\n", '')
-        ui.write(" ", '')
-        ui.write("\n", '')
-        ui.write("-print 'nice', 'boat'", label='diff.deleted')
-        ui.write("-print \"bye world\"", label='diff.deleted')
-        ui.write("+print 'hello', 'world'", label='diff.inserted')
-        ui.write("+", label='diff.inserted')
-        ui.write("+", label='diff.inserted')
-        ui.write("+print 'bye world'", label='diff.inserted')
-        ui.write(" ", '')
-        ui.write("\n", '')
+        ui.write(b"@@ -10,4 +10,6 @@")
+        ui.write(b"\n", b'')
+        ui.write(b" ", b'')
+        ui.write(b"\n", b'')
+        ui.write(b"-print 'nice', 'boat'", label=b'diff.deleted')
+        ui.write(b"-print \"bye world\"", label=b'diff.deleted')
+        ui.write(b"+print 'hello', 'world'", label=b'diff.inserted')
+        ui.write(b"+", label=b'diff.inserted')
+        ui.write(b"+", label=b'diff.inserted')
+        ui.write(b"+print 'bye world'", label=b'diff.inserted')
+        ui.write(b" ", b'')
+        ui.write(b"\n", b'')
 
-        if mercurial_version() >= "4.2.0":
-            stop = "\x1b[0m"
+        if mercurial_version() >= b"4.2.0":
+            stop = b"\x1b[0m"
 
             def start(*colors):
-                return "\x1b[0;" + ";".join(str(c) for c in colors) + "m"
+                return b"\x1b[0;" + ";".join(str(c) for c in colors).encode() + b"m"
 
             def restart(*colors):
                 return stop + start(*colors)
         else:
-            stop = "\x1b(B\x1b[m"
+            stop = b"\x1b(B\x1b[m"
 
             def start(*colors):
-                return stop + "".join("\x1b[%dm" % c for c in colors)
+                return stop + b"".join(b"\x1b[%dm" % c for c in colors)
 
             def restart(*colors):
                 return stop + start(*colors)
 
-        if mercurial_version() >= "3.7.0":
+        if mercurial_version() >= b"3.7.0":
             lines = ui.popbuffer().splitlines()
         else:
             lines = ui.popbuffer(True).splitlines()
         self.assertEqual(9, len(lines))
-        self.assertEqual("@@ -10,4 +10,6 @@", lines[0])
-        self.assertEqual(" ", lines[1])
-        self.assertEqual(("%s-print '%snice%s', '%sboat%s'%s" %
+        self.assertEqual(b"@@ -10,4 +10,6 @@", lines[0])
+        self.assertEqual(b" ", lines[1])
+        self.assertEqual((b"%s-print '%snice%s', '%sboat%s'%s" %
                           (start(31), restart(31, 7), restart(31),
                            restart(31, 7), restart(31), stop)),
                          lines[2])
-        self.assertEqual(("%s+print '%shello%s', '%sworld%s'%s" %
+        self.assertEqual((b"%s+print '%shello%s', '%sworld%s'%s" %
                           (start(32), restart(32, 7), restart(32),
                            restart(32, 7), restart(32), stop)),
                          lines[3])
-        self.assertEqual("%s+%s" % (start(32), stop), lines[4])
-        self.assertEqual("%s+%s" % (start(32), stop), lines[5])
-        self.assertEqual(("%s-print %s\"%sbye world%s\"%s" %
+        self.assertEqual(b"%s+%s" % (start(32), stop), lines[4])
+        self.assertEqual(b"%s+%s" % (start(32), stop), lines[5])
+        self.assertEqual((b"%s-print %s\"%sbye world%s\"%s" %
                           (start(31), restart(31, 7), restart(31),
                            restart(31, 7), stop)),
                          lines[6])
-        self.assertEqual(("%s+print %s'%sbye world%s'%s" %
+        self.assertEqual((b"%s+print %s'%sbye world%s'%s" %
                           (start(32), restart(32, 7), restart(32),
                            restart(32, 7), stop)),
                          lines[7])
-        self.assertEqual(" ", lines[8])
+        self.assertEqual(b" ", lines[8])

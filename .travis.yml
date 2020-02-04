@@ -16,6 +16,7 @@ matrix:
     - env: TOXENV=hg41
     - env: TOXENV=hg42
     - env: TOXENV=hg46
+    - env: TOXENV=hg52
     - env: TOXENV=coverage
 install: pip install docutils tox
 script: tox
