@@ -61,12 +61,12 @@ class colorui(color.colorui):
         if self.hunk is None:  # not initialized yet
             return
 
-        encodings = self.configlist('diff-highlight', 'encodings') or ['utf-8']
+        encodings = self.configlist(b'diff-highlight', b'encodings') or [b'utf-8']
         hunk = []
         for ret in self.hunk:
             for enc in encodings:
                 try:
-                    l = ret[0].decode(enc)
+                    l = ret[0].decode(enc.decode())
                     break
                 except UnicodeDecodeError:
                     continue
